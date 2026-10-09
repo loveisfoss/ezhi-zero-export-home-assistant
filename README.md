@@ -1,6 +1,6 @@
 # EZHI zero export for Home Assistant
 
-Home Assistant automations that keep an APsystems EZHI hybrid microinverter, running in Local mode, at (almost) zero grid export, using a grid meter such as a Shelly Pro EM-50. They also protect the battery by dropping to a fixed output when the state of charge is low, and warn you if a sensor goes offline.
+Home Assistant automations that keep an **APsystems EZHI** hybrid microinverter, running in **Local mode**, at (almost) zero grid export, using a grid meter such as a **Shelly Pro EM-50**. They also protect the battery by dropping to a fixed output when the state of charge is low, and warn you if a sensor goes offline.
 
 > Use at your own risk. Test carefully and check the rules for balcony/plug-in PV in your country. This is a hobby project, not electrical or legal advice.
 
@@ -26,14 +26,18 @@ new limit = current limit + grid power - 4 W
 
 clamped to 30 to 800 W. It only acts when grid power is outside the 0 to 8 W margin, and waits for a 5 second cooldown after each write.
 
-In **Stable output** mode the inverter is held at a fixed limit (40 W by default).
+The mode is selected with a dropdown helper:
 
-The mode is selected with a dropdown helper. Automations switch to Stable output on low battery or connectivity problems, and back to Zero export when the battery has recovered.
+| Mode | Behavior |
+|---|---|
+| `Zero export` | The control loop keeps grid import at about 4 W |
+| `Stable output (auto)` | The inverter is held at a fixed limit (40 W by default). Set by the automations on low battery or connectivity problems, and switched back to Zero export when the battery has recovered |
+| `Stable output (permanent)` | Same fixed limit, but chosen by you: no automation changes the mode until you do |
 
 ## Requirements
 
+- EZHI set to **Local mode**
 - Home Assistant with the [EZHI integration](https://github.com/kamilkosek/EZHI) (or any other way to set the EZHI on-grid power limit as a `number` entity)
-- EZHI set to Local mode
 - A grid meter exposing signed power in W (positive = import)
 - A battery state of charge sensor in %
 - The two helpers below
@@ -43,7 +47,7 @@ The mode is selected with a dropdown helper. Automations switch to Stable output
 
 | Helper | Purpose |
 |---|---|
-| [`input_select.ezhi_mode`](helpers/ezhi-mode.md) | Mode selector: `Zero export` / `Stable output` |
+| [`input_select.ezhi_mode`](helpers/ezhi-mode.md) | Mode selector: `Zero export` / `Stable output (auto)` / `Stable output (permanent)` |
 | [`timer.ezhi_cooldown`](helpers/ezhi-cooldown.md) | 5 second pause between inverter writes |
 
 ## Automations
@@ -51,11 +55,11 @@ The mode is selected with a dropdown helper. Automations switch to Stable output
 | File | What it does |
 |---|---|
 | [`zero-export.yaml`](automations/zero-export.yaml) | The control loop: adjusts the power limit to keep grid import at about 4 W |
-| [`stable-output-on-selection.yaml`](automations/stable-output-on-selection.yaml) | Sets the fixed limit (40 W) when you select Stable output |
-| [`stable-output-timed-check.yaml`](automations/stable-output-timed-check.yaml) | Re-applies the fixed limit every minute while in Stable output |
-| [`low-battery-mode.yaml`](automations/low-battery-mode.yaml) | Switches to Stable output when SoC drops below 17 % |
-| [`battery-recovered.yaml`](automations/battery-recovered.yaml) | Switches back to Zero export when SoC rises above 17 % |
-| [`connectivity-problem.yaml`](automations/connectivity-problem.yaml) | Switches to Stable output and notifies you if a sensor goes unavailable |
+| [`stable-output-on-selection.yaml`](automations/stable-output-on-selection.yaml) | Sets the fixed limit (40 W) when either Stable output option is selected |
+| [`stable-output-timed-check.yaml`](automations/stable-output-timed-check.yaml) | Re-applies the fixed limit every minute while in either Stable output mode |
+| [`low-battery-mode.yaml`](automations/low-battery-mode.yaml) | Switches from Zero export to Stable output (auto) when SoC drops below 17 % |
+| [`battery-recovered.yaml`](automations/battery-recovered.yaml) | Switches from Stable output (auto) back to Zero export when SoC rises above 17 %. Does nothing in Stable output (permanent) |
+| [`connectivity-problem.yaml`](automations/connectivity-problem.yaml) | Notifies you if a sensor goes unavailable, and switches from Zero export to Stable output (auto) |
 
 ## Setup
 
@@ -77,9 +81,10 @@ The mode is selected with a dropdown helper. Automations switch to Stable output
 
 - **Fixed values.** The 4 W target, the 0 to 8 W margin, the 30 to 800 W range, the 40 W stable output and the 17 % battery thresholds are my values. Each is explained in the comments at the top of its file.
 - **Setpoint based.** The control loop works from the limit it last wrote, not from the inverter's measured output, because the inverter output sensor on my setup only updates every few minutes. If your sensor updates quickly, using the real output can be more accurate.
-- **Battery thresholds.** The recovery automation fires on any upward crossing of its threshold, even if you selected Stable output manually. Keep a gap between the low and recovered values if the SoC tends to hover around them.
-- **No automatic return after connectivity problems.** You are notified and switch back to Zero export yourself.
+- **Battery thresholds.** Keep a gap between the low and recovered values if the SoC tends to hover around them, otherwise the mode can flip back and forth.
+- **Your choice is respected.** Select `Stable output (permanent)` and the low battery, battery recovered and connectivity automations leave the mode alone (the connectivity automation still notifies you).
+- **After connectivity problems.** You are notified and the mode becomes `Stable output (auto)`. If the battery SoC sensor was the one that dropped out, the battery recovered automation may switch back to Zero export when it returns. Use `Stable output (permanent)` if you want to decide yourself.
 
 ## Contributing
 
-Issues and pull requests are welcome!
+Issues and pull requests are welcome, especially for other inverters and meters.
