@@ -96,7 +96,7 @@ How they fit together with the automations:
 
 ## Things to know
 
-- **Fixed values.** The 4 W target, the 0 to 8 W margin, the 30 to 800 W range, the 40 W stable output and the 17 % battery thresholds are my values. Each is explained in the comments at the top of its file.
+- **Fixed values.** The 4 W target, the 0 to 8 W margin, the 30 to 800 W range, the 40 W stable output and the 17 % battery thresholds are my values, set where I want them for now. Each is explained in the comments at the top of its file.
 - **Setpoint based.** The control loop works from the limit it last wrote, not from the inverter's measured output, because the inverter output sensor on my setup only updates every few minutes. If your sensor updates quickly, using the real output can be more accurate.
 - **Battery thresholds.** Keep a gap between the low and recovered values if the SoC tends to hover around them, otherwise the mode can flip back and forth.
 - **Your choice is respected.** Select `Stable output (permanent)` and the low battery, battery recovered and connectivity automations leave the mode alone (the connectivity automation still notifies you).
