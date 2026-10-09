@@ -104,4 +104,4 @@ How they fit together with the automations:
 
 ## Contributing
 
-Issues and pull requests are welcome, especially for other inverters and meters.
+Issues and pull requests are welcome!
