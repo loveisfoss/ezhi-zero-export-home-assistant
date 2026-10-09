@@ -23,6 +23,6 @@ Settings > Devices & services > Helpers > Create helper > Timer.
 timer:
   ezhi_cooldown:
     name: EZHI cooldown
-    duration: "00:00:05"
+    duration: "00:00:03"
     restore: false
 ```
