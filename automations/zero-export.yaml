@@ -1,7 +1,8 @@
 # EZHI zero export (Target 4 W, Margin 0-8 W)
 #
 # Keeps grid import slightly above 0 W by adjusting the EZHI on-grid power limit.
-# Runs only while input_select.ezhi_mode = "Zero export".
+# Runs only while input_select.ezhi_mode = "Zero export", and starts immediately when
+# the mode is switched from either Stable output option to Zero export.
 #
 # Replace before use:
 #   sensor.YOUR_GRID_POWER_SENSOR   -> grid meter power in W (positive = import, negative = export)
@@ -25,7 +26,8 @@ triggers:
     entity_id:
       - input_select.ezhi_mode
     from:
-      - Stable output
+      - Stable output (auto)
+      - Stable output (permanent)
     to:
       - Zero export
 conditions:
