@@ -1,0 +1,29 @@
+# EZHI battery recovered
+#
+# Switches back to "Zero export" when the battery state of charge rises above 17 %.
+#
+# Replace before use:
+#   sensor.YOUR_EZHI_BATTERY_SOC_SENSOR -> battery state of charge in %
+#
+# Tunable: "above: 17" = SoC threshold in %
+# Note: this fires on every upward crossing of the threshold, even if you had manually
+# selected "Stable output". A recovery value a few % above the low-battery value
+# avoids the mode flipping back and forth around the threshold.
+#
+# Requires helper: input_select.ezhi_mode
+
+alias: EZHI battery recovered
+description: ''
+triggers:
+  - trigger: numeric_state
+    entity_id: sensor.YOUR_EZHI_BATTERY_SOC_SENSOR
+    above: 17
+conditions: []
+actions:
+  - action: input_select.select_option
+    metadata: {}
+    target:
+      entity_id: input_select.ezhi_mode
+    data:
+      option: Zero export
+mode: single
