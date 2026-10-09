@@ -1,14 +1,18 @@
 # EZHI connectivity problem
 #
-# If the battery SoC sensor or the grid meter becomes unavailable/unknown, switch to
-# "Stable output" and send a persistent notification plus a phone notification.
-# Switch back to "Zero export" manually once everything works again.
+# If the battery SoC sensor or the grid meter becomes unavailable/unknown, switch from
+# "Zero export" to "Stable output (auto)" and always send a persistent notification plus
+# a phone notification. In "Stable output (permanent)" the mode is left as it is.
 #
 # Replace before use:
 #   sensor.YOUR_EZHI_BATTERY_SOC_SENSOR -> battery state of charge in %
 #   sensor.YOUR_GRID_POWER_SENSOR       -> grid meter power in W
 #   notify.mobile_app_YOUR_PHONE        -> notify service of your phone
 #                                          (Developer Tools > Actions, search "notify.")
+#
+# Note: if the SoC sensor was the one that dropped out, battery-recovered.yaml may switch
+# back to Zero export when the sensor returns. Use "Stable output (permanent)" below if you
+# want to decide yourself.
 #
 # Requires helper: input_select.ezhi_mode
 
@@ -29,24 +33,29 @@ triggers:
       - unknown
 conditions: []
 actions:
-  - action: input_select.select_option
-    metadata: {}
-    target:
-      entity_id: input_select.ezhi_mode
-    data:
-      option: Stable output
+  - if:
+      - condition: state
+        entity_id: input_select.ezhi_mode
+        state: Zero export
+    then:
+      - action: input_select.select_option
+        metadata: {}
+        target:
+          entity_id: input_select.ezhi_mode
+        data:
+          option: Stable output (auto)
   - action: notify.persistent_notification
     metadata: {}
     data:
       message: >-
-        EZHI Warning! EZHI or grid meter connectivity problem. EZHI mode set to
-        Stable output. Check the system and switch back to Zero export when
-        ready.
+        EZHI Warning! EZHI or grid meter connectivity problem. EZHI is in
+        Stable output mode. Check the system before switching back to Zero
+        export.
   - action: notify.mobile_app_YOUR_PHONE
     metadata: {}
     data:
       message: >-
-        EZHI or grid meter connectivity problem. EZHI mode set to Stable output.
-        Check the system and switch back to Zero export when ready.
+        EZHI or grid meter connectivity problem. EZHI is in Stable output mode.
+        Check the system before switching back to Zero export.
       title: EZHI Warning!
 mode: single
