@@ -82,4 +82,4 @@ The mode is selected with a dropdown helper. Automations switch to Stable output
 
 ## Contributing
 
-Issues and pull requests are welcome, especially for other inverters and meters.
+Issues and pull requests are welcome!
