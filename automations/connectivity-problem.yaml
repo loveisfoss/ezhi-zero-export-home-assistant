@@ -1,0 +1,52 @@
+# EZHI connectivity problem
+#
+# If the battery SoC sensor or the grid meter becomes unavailable/unknown, switch to
+# "Stable output" and send a persistent notification plus a phone notification.
+# Switch back to "Zero export" manually once everything works again.
+#
+# Replace before use:
+#   sensor.YOUR_EZHI_BATTERY_SOC_SENSOR -> battery state of charge in %
+#   sensor.YOUR_GRID_POWER_SENSOR       -> grid meter power in W
+#   notify.mobile_app_YOUR_PHONE        -> notify service of your phone
+#                                          (Developer Tools > Actions, search "notify.")
+#
+# Requires helper: input_select.ezhi_mode
+
+alias: EZHI connectivity problem
+description: ''
+triggers:
+  - trigger: state
+    entity_id:
+      - sensor.YOUR_EZHI_BATTERY_SOC_SENSOR
+    to:
+      - unavailable
+      - unknown
+  - trigger: state
+    entity_id:
+      - sensor.YOUR_GRID_POWER_SENSOR
+    to:
+      - unavailable
+      - unknown
+conditions: []
+actions:
+  - action: input_select.select_option
+    metadata: {}
+    target:
+      entity_id: input_select.ezhi_mode
+    data:
+      option: Stable output
+  - action: notify.persistent_notification
+    metadata: {}
+    data:
+      message: >-
+        EZHI Warning! EZHI or grid meter connectivity problem. EZHI mode set to
+        Stable output. Check the system and switch back to Zero export when
+        ready.
+  - action: notify.mobile_app_YOUR_PHONE
+    metadata: {}
+    data:
+      message: >-
+        EZHI or grid meter connectivity problem. EZHI mode set to Stable output.
+        Check the system and switch back to Zero export when ready.
+      title: EZHI Warning!
+mode: single

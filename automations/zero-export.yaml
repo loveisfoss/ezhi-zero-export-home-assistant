@@ -1,0 +1,73 @@
+# EZHI zero export (Target 4 W, Margin 0-8 W)
+#
+# Keeps grid import slightly above 0 W by adjusting the EZHI on-grid power limit.
+# Runs only while input_select.ezhi_mode = "Zero export".
+#
+# Replace before use:
+#   sensor.YOUR_GRID_POWER_SENSOR   -> grid meter power in W (positive = import, negative = export)
+#   number.YOUR_EZHI_POWER_LIMIT    -> number entity that sets the EZHI on-grid power limit
+#
+# Tunables:
+#   "- 4"          -> target grid import in W
+#   "< 0 or > 8"   -> deadband: no action while grid power is between 0 and 8 W
+#   "30" / "800"   -> min / max power limit of the inverter in W
+#   "00:00:05"     -> cooldown between writes
+#
+# Requires helpers: input_select.ezhi_mode, timer.ezhi_cooldown
+
+alias: EZHI zero export (Target 4 W, Margin 0-8 W)
+description: ''
+triggers:
+  - trigger: state
+    entity_id:
+      - sensor.YOUR_GRID_POWER_SENSOR
+  - trigger: state
+    entity_id:
+      - input_select.ezhi_mode
+    from:
+      - Stable output
+    to:
+      - Zero export
+conditions:
+  - condition: state
+    entity_id: input_select.ezhi_mode
+    state: Zero export
+  - condition: state
+    entity_id: timer.ezhi_cooldown
+    state: idle
+  - condition: template
+    value_template: |
+      {{ has_value('sensor.YOUR_GRID_POWER_SENSOR')
+         and has_value('number.YOUR_EZHI_POWER_LIMIT') }}
+  - condition: template
+    value_template: |
+      {% set grid_power =
+        states('sensor.YOUR_GRID_POWER_SENSOR')
+        | float(0) %}
+      {{ grid_power < 0 or grid_power > 8 }}
+actions:
+  - variables:
+      grid_power: |
+        {{ states('sensor.YOUR_GRID_POWER_SENSOR')
+           | float(0) }}
+      ezhi_power: |
+        {{ states('number.YOUR_EZHI_POWER_LIMIT')
+           | float(0) }}
+  - variables:
+      new_power: >
+        {% set calculated = ezhi_power + grid_power - 4 %} {{ [[calculated, 30]
+        | max, 800] | min | round(0) }}
+  - condition: template
+    value_template: |
+      {{ new_power | float != ezhi_power | float }}
+  - action: number.set_value
+    target:
+      entity_id: number.YOUR_EZHI_POWER_LIMIT
+    data:
+      value: '{{ new_power }}'
+  - action: timer.start
+    target:
+      entity_id: timer.ezhi_cooldown
+    data:
+      duration: '00:00:05'
+mode: single

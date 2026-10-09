@@ -1,0 +1,29 @@
+# EZHI Stable output - Dropdown selection
+#
+# When the mode is switched to "Stable output", immediately set the EZHI power limit
+# to a fixed value (40 W here).
+#
+# Replace before use:
+#   number.YOUR_EZHI_POWER_LIMIT -> number entity that sets the EZHI on-grid power limit
+#
+# Tunable: value '40' = stable output power in W
+#
+# Requires helper: input_select.ezhi_mode
+
+alias: EZHI Stable output - Dropdown selection
+description: ''
+triggers:
+  - trigger: state
+    entity_id:
+      - input_select.ezhi_mode
+    to:
+      - Stable output
+conditions: []
+actions:
+  - action: number.set_value
+    metadata: {}
+    target:
+      entity_id: number.YOUR_EZHI_POWER_LIMIT
+    data:
+      value: '40'
+mode: single
