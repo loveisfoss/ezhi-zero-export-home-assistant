@@ -7,10 +7,10 @@ Short timer used by the zero export automation as a pause between two writes to 
 | Type | Timer |
 | Name | EZHI cooldown |
 | Entity ID | `timer.ezhi_cooldown` |
-| Duration | `00:00:05` (5 seconds) |
+| Duration | `00:00:03` (3 seconds) |
 | Restore on restart | Off (not needed for a 5 second timer) |
 
-If you change the duration here, also change the `duration: '00:00:05'` value in
+If you change the duration here, also change the `duration: '00:00:03'` value in
 [`zero-export.yaml`](../automations/zero-export.yaml), because the automation starts the timer with its own duration.
 
 ## Create it in the UI
