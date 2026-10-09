@@ -77,6 +77,23 @@ The mode is selected with a dropdown helper:
 | `sensor.YOUR_EZHI_BATTERY_SOC_SENSOR` | Battery state of charge sensor in % |
 | `notify.mobile_app_YOUR_PHONE` | Notify service of your phone |
 
+## Battery limits in the AP EasyPower app
+
+My settings in the AP EasyPower app:
+
+| Setting | Value | Effect |
+|---|---|---|
+| Stop discharge | 15 % | The inverter stops on-grid output when the SoC reaches 15 % |
+| Discharge protection | 17 % | The inverter starts on-grid output again when the SoC reaches 17 % |
+
+How they fit together with the automations:
+
+- **The automations act first and line up with the inverter.** The low battery automation triggers below 17 %, which is 2 points above the level where the inverter stops. Home Assistant moves the system to the fixed 40 W output before the inverter's own limit is reached. At 40 W the remaining 2 % of a 2.71 kWh battery (roughly 55 Wh) lasts well over an hour.
+- **It protects the zero export loop.** The loop works from the limit it last wrote. If the inverter stopped on-grid output at 15 % while the loop was still running, grid import would rise and the loop would keep raising the limit towards 800 W without the real output following. Switching to Stable output writes the fixed limit again, which resets that.
+- **Between 15 % and 17 %.** After the inverter has stopped, the mode stays `Stable output (auto)` while the battery charges. The inverter starts again at 17 %, and the battery recovered automation (above 17 %) then returns to `Zero export`.
+- **The margin is small at high output.** 2 % is only a few minutes at 800 W, and the SoC sensor on my setup updates about every 5 minutes. Under heavy load the inverter can reach 15 % before the automation reacts. The app settings are the real safety net, and the automations are a softer first step.
+- **If you change the app values,** adjust the thresholds in [`low-battery-mode.yaml`](automations/low-battery-mode.yaml) and [`battery-recovered.yaml`](automations/battery-recovered.yaml): keep the low battery threshold above the stop level, and the recovered threshold at or above the level where the inverter starts again.
+
 ## Things to know
 
 - **Fixed values.** The 4 W target, the 0 to 8 W margin, the 30 to 800 W range, the 40 W stable output and the 17 % battery thresholds are my values. Each is explained in the comments at the top of its file.
