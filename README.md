@@ -24,7 +24,7 @@ In **Zero export** mode, every time the meter value changes the automation calcu
 new limit = current limit + grid power - 4 W
 ```
 
-clamped to 30 to 800 W. It only acts when grid power is outside the 0 to 8 W margin, and waits for a 5 second cooldown after each write.
+clamped to 30 to 800 W. It only acts when grid power is outside the 0 to 8 W margin, and waits for a 3 second cooldown after each write.
 
 The mode is selected with a dropdown helper:
 
@@ -48,7 +48,7 @@ The mode is selected with a dropdown helper:
 | Helper | Purpose |
 |---|---|
 | [`input_select.ezhi_mode`](helpers/ezhi-mode.md) | Mode selector: `Zero export` / `Stable output (auto)` / `Stable output (permanent)` |
-| [`timer.ezhi_cooldown`](helpers/ezhi-cooldown.md) | 5 second pause between inverter writes |
+| [`timer.ezhi_cooldown`](helpers/ezhi-cooldown.md) | 3 second pause between inverter writes |
 
 ## Automations
 
