@@ -1,7 +1,7 @@
 # EZHI stable output - Timed check
 #
-# Every minute, while the mode is "Stable output", write the stable power limit again
-# so the inverter stays at that value.
+# Every minute, while the mode is "Stable output (auto)" or "Stable output (permanent)",
+# write the stable power limit again so the inverter stays at that value.
 #
 # Replace before use:
 #   number.YOUR_EZHI_POWER_LIMIT -> number entity that sets the EZHI on-grid power limit
@@ -20,7 +20,8 @@ conditions:
   - condition: state
     entity_id: input_select.ezhi_mode
     state:
-      - Stable output
+      - Stable output (auto)
+      - Stable output (permanent)
 actions:
   - action: number.set_value
     metadata: {}
