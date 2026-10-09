@@ -48,14 +48,14 @@ actions:
     metadata: {}
     data:
       message: >-
-        EZHI Warning! EZHI or grid meter connectivity problem. EZHI is in
+        EZHI Warning! EZHI or grid meter connectivity problem. EZHI is now in
         Stable output mode. Check the system before switching back to Zero
         export.
   - action: notify.mobile_app_YOUR_PHONE
     metadata: {}
     data:
       message: >-
-        EZHI or grid meter connectivity problem. EZHI is in Stable output mode.
+        EZHI or grid meter connectivity problem. EZHI is now in Stable output mode.
         Check the system before switching back to Zero export.
       title: EZHI Warning!
 mode: single
