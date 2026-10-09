@@ -1,6 +1,7 @@
 # EZHI low battery mode
 #
-# Switches to "Stable output" when the battery state of charge drops below 17 %.
+# Switches from "Zero export" to "Stable output (auto)" when the battery state of charge
+# drops below 17 %. Does nothing in any Stable output mode (you are already at the fixed output).
 #
 # Replace before use:
 #   sensor.YOUR_EZHI_BATTERY_SOC_SENSOR -> battery state of charge in %
@@ -16,12 +17,15 @@ triggers:
   - trigger: numeric_state
     entity_id: sensor.YOUR_EZHI_BATTERY_SOC_SENSOR
     below: 17
-conditions: []
+conditions:
+  - condition: state
+    entity_id: input_select.ezhi_mode
+    state: Zero export
 actions:
   - action: input_select.select_option
     metadata: {}
     target:
       entity_id: input_select.ezhi_mode
     data:
-      option: Stable output
+      option: Stable output (auto)
 mode: single
