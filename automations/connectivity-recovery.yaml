@@ -1,0 +1,54 @@
+# EZHI connectivity recovery
+#
+# Switches from "Stable output (auto)" back to "Zero export" once the battery SoC sensor and
+# the grid meter have both had valid values for 3 minutes in a row and the SoC is above
+# 17 %, then sends a persistent notification plus a phone notification.
+# Does nothing in "Stable output (permanent)", so your manual choice is respected.
+#
+# It uses a template trigger with "for", so it fires exactly 3 minutes after the sensors
+# are back (no polling). It also works after a Home Assistant restart.
+#
+# Replace before use:
+#   sensor.YOUR_EZHI_BATTERY_SOC_SENSOR -> battery state of charge in %
+#   sensor.YOUR_GRID_POWER_SENSOR       -> grid meter power in W
+#   notify.mobile_app_YOUR_PHONE        -> notify service of your phone
+#
+# Tunables: "> 17" = minimum SoC in %, "for" = how long the sensors must be stable.
+# Keep the SoC value the same as in low-battery-mode.yaml and battery-recovered.yaml.
+#
+# Requires helper: input_select.ezhi_mode
+
+alias: EZHI connectivity recovery
+description: ''
+triggers:
+  - trigger: template
+    value_template: >
+      {{ is_state('input_select.ezhi_mode', 'Stable output (auto)')
+         and has_value('sensor.YOUR_EZHI_BATTERY_SOC_SENSOR')
+         and has_value('sensor.YOUR_GRID_POWER_SENSOR')
+         and states('sensor.YOUR_EZHI_BATTERY_SOC_SENSOR') | float(0) > 17 }}
+    for: '00:03:00'
+conditions: []
+actions:
+  - action: input_select.select_option
+    metadata: {}
+    target:
+      entity_id: input_select.ezhi_mode
+    data:
+      option: Zero export
+  - action: notify.persistent_notification
+    metadata: {}
+    data:
+      message: >-
+        EZHI recovered. Sensors have been stable for 3 minutes and the battery
+        is at {{ states('sensor.YOUR_EZHI_BATTERY_SOC_SENSOR') }} %. Mode
+        switched back to Zero export.
+  - action: notify.mobile_app_YOUR_PHONE
+    metadata: {}
+    data:
+      message: >-
+        Sensors have been stable for 3 minutes and the battery is at
+        {{ states('sensor.YOUR_EZHI_BATTERY_SOC_SENSOR') }} %. Mode switched
+        back to Zero export.
+      title: EZHI recovered
+mode: single
