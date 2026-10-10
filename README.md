@@ -24,14 +24,14 @@ In **Zero export** mode, every time the meter value changes the automation calcu
 new limit = current limit + grid power - 4 W
 ```
 
-clamped to 30 to 800 W. It only acts when grid power is outside the 0 to 8 W margin, and waits for a 3 second cooldown after each write.
+clamped to 30 to 800 W. It only acts when grid power is outside the 0 to 8 W margin, and waits for a 5 second cooldown after each write.
 
 The mode is selected with a dropdown helper:
 
 | Mode | Behavior |
 |---|---|
 | `Zero export` | The control loop keeps grid import at about 4 W |
-| `Stable output (auto)` | The inverter is held at a fixed limit (40 W by default). Set by the automations on low battery or connectivity problems, and switched back to Zero export when the battery has recovered |
+| `Stable output (auto)` | The inverter is held at a fixed limit (40 W by default). Set by the automations on low battery or connectivity problems, and switched back to Zero export when the battery has recovered or the sensors have been stable again |
 | `Stable output (permanent)` | Same fixed limit, but chosen by you: no automation changes the mode until you do |
 
 ## Requirements
@@ -48,7 +48,7 @@ The mode is selected with a dropdown helper:
 | Helper | Purpose |
 |---|---|
 | [`input_select.ezhi_mode`](helpers/ezhi-mode.md) | Mode selector: `Zero export` / `Stable output (auto)` / `Stable output (permanent)` |
-| [`timer.ezhi_cooldown`](helpers/ezhi-cooldown.md) | 3 second pause between inverter writes |
+| [`timer.ezhi_cooldown`](helpers/ezhi-cooldown.md) | 5 second pause between inverter writes |
 
 ## Automations
 
@@ -60,13 +60,14 @@ The mode is selected with a dropdown helper:
 | [`low-battery-mode.yaml`](automations/low-battery-mode.yaml) | Switches from Zero export to Stable output (auto) when SoC drops below 17 % |
 | [`battery-recovered.yaml`](automations/battery-recovered.yaml) | Switches from Stable output (auto) back to Zero export when SoC rises above 17 %. Does nothing in Stable output (permanent) |
 | [`connectivity-problem.yaml`](automations/connectivity-problem.yaml) | Notifies you if a sensor goes unavailable, and switches from Zero export to Stable output (auto) |
+| [`connectivity-recovery.yaml`](automations/connectivity-recovery.yaml) | Switches from Stable output (auto) back to Zero export once the SoC sensor and grid meter have been valid for 3 minutes and SoC is above 17 %, and notifies you. Does nothing in Stable output (permanent) |
 
 ## Setup
 
 1. Create the two [helpers](#helpers).
 2. For each automation file, replace every placeholder written in capital letters (see the table below). Placeholders are in the form `sensor.YOUR_...`, `number.YOUR_...` and `notify.mobile_app_YOUR_PHONE`.
 3. Create the automations in Home Assistant (Settings > Automations & scenes > Create automation > three dots > Edit in YAML) and paste each file.
-4. Start in Stable output mode, then switch to Zero export once you have checked that the values look right.
+4. Start in `Stable output (permanent)`, then switch to `Zero export` once you have checked that the values look right. (In `Stable output (auto)` the recovery automations would switch to Zero export on their own.)
 
 ### Placeholders
 
@@ -99,9 +100,10 @@ How they fit together with the automations:
 - **Fixed values.** The 4 W target, the 0 to 8 W margin, the 30 to 800 W range, the 40 W stable output and the 17 % battery thresholds are my values, set where I want them for now. Each is explained in the comments at the top of its file.
 - **Setpoint based.** The control loop works from the limit it last wrote, not from the inverter's measured output, because the inverter output sensor on my setup only updates every few minutes. If your sensor updates quickly, using the real output can be more accurate.
 - **Battery thresholds.** Keep a gap between the low and recovered values if the SoC tends to hover around them, otherwise the mode can flip back and forth.
-- **Your choice is respected.** Select `Stable output (permanent)` and the low battery, battery recovered and connectivity automations leave the mode alone (the connectivity automation still notifies you).
-- **After connectivity problems.** You are notified and the mode becomes `Stable output (auto)`. If the battery SoC sensor was the one that dropped out, the battery recovered automation may switch back to Zero export when it returns. Use `Stable output (permanent)` if you want to decide yourself.
+- **Your choice is respected.** Select `Stable output (permanent)` and the low battery, battery recovered, connectivity problem and connectivity recovery automations leave the mode alone (the connectivity problem automation still notifies you).
+- **No delay on connectivity problems.** Even a one-second unavailable moment of the grid meter or the SoC sensor switches to `Stable output (auto)` and sends a notification. This is intentional.
+- **Automatic recovery.** Once both sensors have been valid for 3 minutes and the battery is above 17 %, `connectivity-recovery.yaml` switches back to `Zero export` and notifies you. Use `Stable output (permanent)` if you want to decide yourself.
 
 ## Contributing
 
-Issues and pull requests are welcome!
+Issues and pull requests are welcome.
