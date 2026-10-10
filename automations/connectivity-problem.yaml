@@ -1,8 +1,10 @@
 # EZHI connectivity problem
 #
-# If the battery SoC sensor or the grid meter becomes unavailable/unknown, switch from
-# "Zero export" to "Stable output (auto)" and always send a persistent notification plus
-# a phone notification. In "Stable output (permanent)" the mode is left as it is.
+# If the battery SoC sensor or the grid meter becomes unavailable/unknown (even for a
+# moment), switch from "Zero export" to "Stable output (auto)" and always send a
+# persistent notification plus a phone notification. In "Stable output (permanent)"
+# the mode is left as it is. The notification names the sensor that dropped out.
+# connectivity-recovery.yaml switches back to "Zero export" once the sensors are stable.
 #
 # Replace before use:
 #   sensor.YOUR_EZHI_BATTERY_SOC_SENSOR -> battery state of charge in %
@@ -10,9 +12,8 @@
 #   notify.mobile_app_YOUR_PHONE        -> notify service of your phone
 #                                          (Developer Tools > Actions, search "notify.")
 #
-# Note: if the SoC sensor was the one that dropped out, battery-recovered.yaml may switch
-# back to Zero export when the sensor returns. Use "Stable output (permanent)" below if you
-# want to decide yourself.
+# Tunable: the "It will return..." text in the outcome variable (3 minutes and 17 %) should
+# match the values used in connectivity-recovery.yaml.
 #
 # Requires helper: input_select.ezhi_mode
 
@@ -33,6 +34,24 @@ triggers:
       - unknown
 conditions: []
 actions:
+  - variables:
+      previous_mode: "{{ states('input_select.ezhi_mode') }}"
+      problem: >-
+        {% if trigger is defined and trigger.to_state is defined
+              and trigger.to_state is not none %}
+        {{ trigger.to_state.name }} is {{ trigger.to_state.state }}.
+        {% else %}
+        A sensor is unavailable.
+        {% endif %}
+  - variables:
+      outcome: >-
+        {% if previous_mode == 'Zero export' %}
+        Switched to Stable output (auto). It will return to Zero export
+        automatically once both sensors have been stable for 3 minutes and the
+        battery is above 17 %.
+        {% else %}
+        Mode left unchanged: {{ previous_mode }}.
+        {% endif %}
   - if:
       - condition: state
         entity_id: input_select.ezhi_mode
@@ -48,14 +67,11 @@ actions:
     metadata: {}
     data:
       message: >-
-        EZHI Warning! EZHI or grid meter connectivity problem. EZHI is now in
-        Stable output mode. Check the system before switching back to Zero
-        export.
+        EZHI Warning! {{ problem }} {{ outcome }}
   - action: notify.mobile_app_YOUR_PHONE
     metadata: {}
     data:
       message: >-
-        EZHI or grid meter connectivity problem. EZHI is now in Stable output mode.
-        Check the system before switching back to Zero export.
+        {{ problem }} {{ outcome }}
       title: EZHI Warning!
 mode: single
