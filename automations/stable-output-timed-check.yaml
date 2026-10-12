@@ -1,3 +1,16 @@
+# EZHI stable output - Timed check
+#
+# Every minute, while the mode is "Stable output (auto)" or "Stable output (permanent)",
+# write the stable power limit again so the inverter stays at that value.
+#
+# Replace before use:
+#   number.YOUR_EZHI_POWER_LIMIT -> number entity that sets the EZHI on-grid power limit
+#
+# Tunables: value '40' = stable output power in W (keep it the same as in
+# stable-output-on-selection.yaml), "/1" = check interval in minutes
+#
+# Requires helpers: input_select.ezhi_mode, input_boolean.ezhi_local_mode
+
 alias: EZHI stable output - Timed check
 description: ''
 triggers:
@@ -5,19 +18,18 @@ triggers:
     minutes: /1
 conditions:
   - condition: state
+    entity_id: input_boolean.ezhi_local_mode
+    state: 'on'
+  - condition: state
     entity_id: input_select.ezhi_mode
     state:
       - Stable output (auto)
       - Stable output (permanent)
-  - condition: template
-    value_template: >
-      {{ is_number(states('number.ezhi_apsystems_ezhi_on_grid_power'))
-         and states('number.ezhi_apsystems_ezhi_on_grid_power') | float != 40 }}
 actions:
   - action: number.set_value
     metadata: {}
     target:
-      entity_id: number.ezhi_apsystems_ezhi_on_grid_power
+      entity_id: number.YOUR_EZHI_POWER_LIMIT
     data:
       value: '40'
 mode: single
