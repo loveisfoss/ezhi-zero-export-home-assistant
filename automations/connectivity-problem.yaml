@@ -15,7 +15,7 @@
 # Tunable: the "It will return..." text in the outcome variable (3 minutes and 17 %) should
 # match the values used in connectivity-recovery.yaml.
 #
-# Requires helper: input_select.ezhi_mode
+# Requires helpers: input_select.ezhi_mode, input_boolean.ezhi_local_mode
 
 alias: EZHI connectivity problem
 description: ''
@@ -32,7 +32,10 @@ triggers:
     to:
       - unavailable
       - unknown
-conditions: []
+conditions:
+  - condition: state
+    entity_id: input_boolean.ezhi_local_mode
+    state: 'on'
 actions:
   - variables:
       previous_mode: "{{ states('input_select.ezhi_mode') }}"
