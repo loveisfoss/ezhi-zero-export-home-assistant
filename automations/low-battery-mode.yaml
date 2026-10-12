@@ -1,15 +1,19 @@
 # EZHI low battery mode
 #
 # Switches from "Zero export" to "Stable output (auto)" when the battery state of charge
-# drops below 17 %. Does nothing in any Stable output mode (you are already at the fixed output).
+# drops below 17 %. Does nothing in any Stable output mode (you are already at the fixed
+# output) and nothing while input_boolean.ezhi_local_mode is off.
+#
+# It also runs when local mode is switched on again, and checks the SoC then. This covers
+# a battery that dropped below 17 % while local mode was off, when no crossing was seen.
 #
 # Replace before use:
 #   sensor.YOUR_EZHI_BATTERY_SOC_SENSOR -> battery state of charge in %
 #
-# Tunable: "below: 17" = SoC threshold in %
+# Tunable: "below: 17" = SoC threshold in % (two places: trigger and condition)
 # Pair it with battery-recovered.yaml and keep a sensible gap between the two thresholds.
 #
-# Requires helper: input_select.ezhi_mode
+# Requires helpers: input_select.ezhi_mode, input_boolean.ezhi_local_mode
 
 alias: EZHI low battery mode
 description: ''
@@ -17,10 +21,19 @@ triggers:
   - trigger: numeric_state
     entity_id: sensor.YOUR_EZHI_BATTERY_SOC_SENSOR
     below: 17
+  - trigger: state
+    entity_id: input_boolean.ezhi_local_mode
+    to: 'on'
 conditions:
+  - condition: state
+    entity_id: input_boolean.ezhi_local_mode
+    state: 'on'
   - condition: state
     entity_id: input_select.ezhi_mode
     state: Zero export
+  - condition: numeric_state
+    entity_id: sensor.YOUR_EZHI_BATTERY_SOC_SENSOR
+    below: 17
 actions:
   - action: input_select.select_option
     metadata: {}
