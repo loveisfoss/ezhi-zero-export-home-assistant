@@ -11,7 +11,7 @@
 # A recovery value a few % above the low-battery value avoids the mode flipping back and
 # forth around the threshold.
 #
-# Requires helper: input_select.ezhi_mode
+# Requires helpers: input_select.ezhi_mode, input_boolean.ezhi_local_mode
 
 alias: EZHI battery recovered
 description: ''
@@ -20,6 +20,9 @@ triggers:
     entity_id: sensor.YOUR_EZHI_BATTERY_SOC_SENSOR
     above: 17
 conditions:
+  - condition: state
+    entity_id: input_boolean.ezhi_local_mode
+    state: 'on'
   - condition: state
     entity_id: input_select.ezhi_mode
     state: Stable output (auto)
