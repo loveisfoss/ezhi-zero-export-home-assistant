@@ -1,7 +1,7 @@
 # EZHI zero export (Target 4 W, Margin 0-8 W)
 #
 # Keeps grid import slightly above 0 W by adjusting the EZHI on-grid power limit.
-# Runs only while input_select.ezhi_mode = "Zero export", and starts immediately when
+# Runs only while input_boolean.ezhi_local_mode is on and input_select.ezhi_mode = "Zero export", and starts immediately when
 # the mode is switched from either Stable output option to Zero export.
 #
 # Replace before use:
@@ -14,7 +14,7 @@
 #   "30" / "800"   -> min / max power limit of the inverter in W
 #   "00:00:05"     -> cooldown between writes
 #
-# Requires helpers: input_select.ezhi_mode, timer.ezhi_cooldown
+# Requires helpers: input_select.ezhi_mode, timer.ezhi_cooldown, input_boolean.ezhi_local_mode
 
 alias: EZHI zero export (Target 4 W, Margin 0-8 W)
 description: ''
@@ -31,6 +31,9 @@ triggers:
     to:
       - Zero export
 conditions:
+  - condition: state
+    entity_id: input_boolean.ezhi_local_mode
+    state: 'on'
   - condition: state
     entity_id: input_select.ezhi_mode
     state: Zero export
