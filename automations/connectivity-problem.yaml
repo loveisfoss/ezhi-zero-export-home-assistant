@@ -12,10 +12,10 @@
 #   notify.mobile_app_YOUR_PHONE        -> notify service of your phone
 #                                          (Developer Tools > Actions, search "notify.")
 #
-# Tunable: the "It will return..." text in the outcome variable (3 minutes and 17 %) should
+# Tunable: the "It will return..." text in the outcome variable (3 minutes and 19 %) should
 # match the values used in connectivity-recovery.yaml.
 #
-# Requires helpers: input_select.ezhi_mode, input_boolean.ezhi_local_mode
+# Requires helpers: input_select.ezhi_output_mode, input_boolean.ezhi_local_mode
 
 alias: EZHI connectivity problem
 description: ''
@@ -38,7 +38,7 @@ conditions:
     state: 'on'
 actions:
   - variables:
-      previous_mode: "{{ states('input_select.ezhi_mode') }}"
+      previous_mode: "{{ states('input_select.ezhi_output_mode') }}"
       problem: >-
         {% if trigger is defined and trigger.to_state is defined
               and trigger.to_state is not none %}
@@ -51,19 +51,19 @@ actions:
         {% if previous_mode == 'Zero export' %}
         Switched to Stable output (auto). It will return to Zero export
         automatically once both sensors have been stable for 3 minutes and the
-        battery is above 17 %.
+        battery reaches 19 %.
         {% else %}
         Mode left unchanged: {{ previous_mode }}.
         {% endif %}
   - if:
       - condition: state
-        entity_id: input_select.ezhi_mode
+        entity_id: input_select.ezhi_output_mode
         state: Zero export
     then:
       - action: input_select.select_option
         metadata: {}
         target:
-          entity_id: input_select.ezhi_mode
+          entity_id: input_select.ezhi_output_mode
         data:
           option: Stable output (auto)
   - action: notify.persistent_notification
