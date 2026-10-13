@@ -13,7 +13,7 @@
 # Tunable: "below: 17" = SoC threshold in % (two places: trigger and condition)
 # Pair it with battery-recovered.yaml and keep a sensible gap between the two thresholds.
 #
-# Requires helpers: input_select.ezhi_mode, input_boolean.ezhi_local_mode
+# Requires helpers: input_select.ezhi_output_mode, input_boolean.ezhi_local_mode
 
 alias: EZHI low battery mode
 description: ''
@@ -29,7 +29,7 @@ conditions:
     entity_id: input_boolean.ezhi_local_mode
     state: 'on'
   - condition: state
-    entity_id: input_select.ezhi_mode
+    entity_id: input_select.ezhi_output_mode
     state: Zero export
   - condition: numeric_state
     entity_id: sensor.YOUR_EZHI_BATTERY_SOC_SENSOR
@@ -38,7 +38,7 @@ actions:
   - action: input_select.select_option
     metadata: {}
     target:
-      entity_id: input_select.ezhi_mode
+      entity_id: input_select.ezhi_output_mode
     data:
       option: Stable output (auto)
 mode: single
