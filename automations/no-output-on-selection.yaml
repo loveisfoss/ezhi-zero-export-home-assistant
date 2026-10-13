@@ -1,0 +1,32 @@
+# EZHI no output - Dropdown selection
+#
+# When the mode is switched to "No output", immediately set the EZHI power limit to 0 W.
+# Does nothing while input_boolean.ezhi_local_mode is off.
+#
+# Replace before use:
+#   number.YOUR_EZHI_POWER_LIMIT -> number entity that sets the EZHI on-grid power limit
+#
+# The power limit entity must accept 0 (see its "min" attribute in Developer Tools > States).
+#
+# Requires helpers: input_select.ezhi_output_mode, input_boolean.ezhi_local_mode
+
+alias: EZHI no output - Dropdown selection
+description: ''
+triggers:
+  - trigger: state
+    entity_id:
+      - input_select.ezhi_output_mode
+    to:
+      - No output
+conditions:
+  - condition: state
+    entity_id: input_boolean.ezhi_local_mode
+    state: 'on'
+actions:
+  - action: number.set_value
+    metadata: {}
+    target:
+      entity_id: number.YOUR_EZHI_POWER_LIMIT
+    data:
+      value: '0'
+mode: single

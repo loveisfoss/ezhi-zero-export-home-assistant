@@ -1,0 +1,35 @@
+# EZHI high power mode off - clamp limit
+#
+# When high power mode is switched off, lowers the power limit to 800 W straight away if it is
+# above 800 W. Without it, the limit would only come down the next time the grid reading
+# leaves the deadband of the zero export automation.
+# Does nothing while input_boolean.ezhi_local_mode is off.
+#
+# Replace before use:
+#   number.YOUR_EZHI_POWER_LIMIT -> number entity that sets the EZHI on-grid power limit
+#
+# Tunable: "800" = normal maximum power limit in W (also in two places in zero-export.yaml)
+#
+# Requires helpers: input_boolean.ezhi_high_power_mode, input_boolean.ezhi_local_mode
+
+alias: EZHI high power mode off - clamp limit
+description: ''
+triggers:
+  - trigger: state
+    entity_id: input_boolean.ezhi_high_power_mode
+    to: 'off'
+conditions:
+  - condition: state
+    entity_id: input_boolean.ezhi_local_mode
+    state: 'on'
+  - condition: template
+    value_template: >
+      {{ has_value('number.YOUR_EZHI_POWER_LIMIT')
+         and states('number.YOUR_EZHI_POWER_LIMIT') | float(0) > 800 }}
+actions:
+  - action: number.set_value
+    target:
+      entity_id: number.YOUR_EZHI_POWER_LIMIT
+    data:
+      value: '800'
+mode: single
