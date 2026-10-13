@@ -8,14 +8,14 @@
 #
 # Tunable: value '40' = stable output power in W
 #
-# Requires helpers: input_select.ezhi_mode, input_boolean.ezhi_local_mode
+# Requires helpers: input_select.ezhi_output_mode, input_boolean.ezhi_local_mode
 
 alias: EZHI Stable output - Dropdown selection
 description: ''
 triggers:
   - trigger: state
     entity_id:
-      - input_select.ezhi_mode
+      - input_select.ezhi_output_mode
     to:
       - Stable output (auto)
       - Stable output (permanent)
