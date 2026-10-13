@@ -9,7 +9,7 @@
 # Tunables: value '40' = stable output power in W (keep it the same as in
 # stable-output-on-selection.yaml), "/1" = check interval in minutes
 #
-# Requires helpers: input_select.ezhi_mode, input_boolean.ezhi_local_mode
+# Requires helpers: input_select.ezhi_output_mode, input_boolean.ezhi_local_mode
 
 alias: EZHI stable output - Timed check
 description: ''
@@ -21,7 +21,7 @@ conditions:
     entity_id: input_boolean.ezhi_local_mode
     state: 'on'
   - condition: state
-    entity_id: input_select.ezhi_mode
+    entity_id: input_select.ezhi_output_mode
     state:
       - Stable output (auto)
       - Stable output (permanent)
