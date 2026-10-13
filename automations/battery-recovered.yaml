@@ -1,36 +1,37 @@
 # EZHI battery recovered
 #
 # Switches from "Stable output (auto)" back to "Zero export" when the battery state of
-# charge rises above 17 %. If you selected "Stable output (permanent)", this automation
-# does nothing, so your choice is respected.
+# charge reaches 19 %. In every other mode (Stable output (permanent), No output) it does
+# nothing, so your choice is respected. It also does nothing while
+# input_boolean.ezhi_local_mode is off.
 #
 # Replace before use:
 #   sensor.YOUR_EZHI_BATTERY_SOC_SENSOR -> battery state of charge in %
 #
-# Tunable: "above: 17" = SoC threshold in %
-# A recovery value a few % above the low-battery value avoids the mode flipping back and
-# forth around the threshold.
+# Tunable: "above: 18" = trigger level in %. With whole-number readings it fires at 19 %.
+# The gap to the low battery threshold (17 %, low-battery-mode.yaml) avoids the mode flipping
+# back and forth. Keep the value the same as in connectivity-recovery.yaml.
 #
-# Requires helpers: input_select.ezhi_mode, input_boolean.ezhi_local_mode
+# Requires helpers: input_select.ezhi_output_mode, input_boolean.ezhi_local_mode
 
 alias: EZHI battery recovered
 description: ''
 triggers:
   - trigger: numeric_state
     entity_id: sensor.YOUR_EZHI_BATTERY_SOC_SENSOR
-    above: 17
+    above: 18
 conditions:
   - condition: state
     entity_id: input_boolean.ezhi_local_mode
     state: 'on'
   - condition: state
-    entity_id: input_select.ezhi_mode
+    entity_id: input_select.ezhi_output_mode
     state: Stable output (auto)
 actions:
   - action: input_select.select_option
     metadata: {}
     target:
-      entity_id: input_select.ezhi_mode
+      entity_id: input_select.ezhi_output_mode
     data:
       option: Zero export
 mode: single
