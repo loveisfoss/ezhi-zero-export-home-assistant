@@ -16,7 +16,7 @@ Master switch for the whole setup. Every automation in this repo runs only while
 ## When you switch it on again
 
 - The zero export loop resumes with the next grid meter reading.
-- In either Stable output mode, the fixed limit is re-applied within a minute by the timed check.
+- In either Stable output mode, the fixed limit is re-applied within a minute by the timed check. In `No output`, the 0 W limit is re-applied within a minute.
 - `low-battery-mode.yaml` runs right away and switches to `Stable output (auto)` if the battery is below its threshold.
 - `connectivity-recovery.yaml` starts its 3 minute check, if the mode is `Stable output (auto)`.
 
