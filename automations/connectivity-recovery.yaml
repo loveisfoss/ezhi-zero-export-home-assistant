@@ -1,10 +1,10 @@
 # EZHI connectivity recovery
 #
 # Switches from "Stable output (auto)" back to "Zero export" once the battery SoC sensor and
-# the grid meter have both had valid values for 3 minutes in a row and the SoC is above
-# 17 %, then sends a persistent notification plus a phone notification.
-# Does nothing in "Stable output (permanent)", so your manual choice is respected,
-# and nothing while input_boolean.ezhi_local_mode is off.
+# the grid meter have both had valid values for 3 minutes in a row and the SoC is at 19 %
+# or more, then sends a persistent notification plus a phone notification.
+# In every other mode (Stable output (permanent), No output) it does nothing, so your choice
+# is respected. It also does nothing while input_boolean.ezhi_local_mode is off.
 #
 # It uses a template trigger with "for", so it fires exactly 3 minutes after the sensors
 # are back (no polling). It also works after a Home Assistant restart. Local mode is part
@@ -15,10 +15,11 @@
 #   sensor.YOUR_GRID_POWER_SENSOR       -> grid meter power in W
 #   notify.mobile_app_YOUR_PHONE        -> notify service of your phone
 #
-# Tunables: "> 17" = minimum SoC in %, "for" = how long the sensors must be stable.
-# Keep the SoC value the same as in low-battery-mode.yaml and battery-recovered.yaml.
+# Tunables: "> 18" = SoC level in % (with whole-number readings it fires at 19 %),
+# "for" = how long the sensors must be stable.
+# Keep the SoC value the same as in battery-recovered.yaml.
 #
-# Requires helpers: input_select.ezhi_mode, input_boolean.ezhi_local_mode
+# Requires helpers: input_select.ezhi_output_mode, input_boolean.ezhi_local_mode
 
 alias: EZHI connectivity recovery
 description: ''
@@ -26,10 +27,10 @@ triggers:
   - trigger: template
     value_template: >
       {{ is_state('input_boolean.ezhi_local_mode', 'on')
-         and is_state('input_select.ezhi_mode', 'Stable output (auto)')
+         and is_state('input_select.ezhi_output_mode', 'Stable output (auto)')
          and has_value('sensor.YOUR_EZHI_BATTERY_SOC_SENSOR')
          and has_value('sensor.YOUR_GRID_POWER_SENSOR')
-         and states('sensor.YOUR_EZHI_BATTERY_SOC_SENSOR') | float(0) > 17 }}
+         and states('sensor.YOUR_EZHI_BATTERY_SOC_SENSOR') | float(0) > 18 }}
     for: '00:03:00'
 conditions:
   - condition: state
@@ -39,7 +40,7 @@ actions:
   - action: input_select.select_option
     metadata: {}
     target:
-      entity_id: input_select.ezhi_mode
+      entity_id: input_select.ezhi_output_mode
     data:
       option: Zero export
   - action: notify.persistent_notification
