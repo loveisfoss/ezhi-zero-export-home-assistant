@@ -10,8 +10,7 @@ Short timer used by the zero export automation as a pause between two writes to 
 | Duration | `00:00:03` (3 seconds) |
 | Restore on restart | Off (not needed for a 3 second timer) |
 
-If you change the duration here, also change the `duration: '00:00:03'` value in
-[`zero-export.yaml`](../automations/zero-export.yaml), because the automation starts the timer with its own duration.
+The duration is set only here: [`zero-export.yaml`](../automations/zero-export.yaml) starts the timer without its own duration, so change the cooldown in this helper's settings.
 
 ## Create it in the UI
 
