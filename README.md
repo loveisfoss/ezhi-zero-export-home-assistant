@@ -33,7 +33,7 @@ The mode is selected with a dropdown helper:
 | `Zero export` | The control loop keeps grid import at about 4 W |
 | `Stable output (auto)` | The inverter is held at a fixed limit (40 W by default). Set by the automations on low battery or connectivity problems, and switched back to Zero export when the battery has recovered or the sensors have been stable again |
 | `Stable output (permanent)` | Same fixed limit, but chosen by you: no automation changes the mode until you do |
-| `No output` | The power limit is set to 0 W and re-applied every minute. Chosen by you: no automation changes the mode until you do |
+| `No output` | The power limit is set to 0 W and re-applied every minute. Set when local mode is switched off, or chosen by you: no automation switches out of it |
 
 ## Requirements
 
@@ -50,7 +50,7 @@ The mode is selected with a dropdown helper:
 |---|---|
 | [`input_select.ezhi_output_mode`](helpers/ezhi-output-mode.md) | Output mode selector: `Zero export` / `Stable output (auto)` / `Stable output (permanent)` / `No output` |
 | [`timer.ezhi_cooldown`](helpers/ezhi-cooldown.md) | Short pause between inverter writes (3 seconds) |
-| [`input_boolean.ezhi_local_mode`](helpers/ezhi-local-mode.md) | Master switch: all automations run only while it is on. Turn it off to put the EZHI back on the cloud |
+| [`input_boolean.ezhi_local_mode`](helpers/ezhi-local-mode.md) | Master switch: the automations run only while it is on. Turning it off sets No output and hands the EZHI back to the cloud |
 | [`input_boolean.ezhi_high_power_mode`](helpers/ezhi-high-power-mode.md) | Raises the maximum power limit of the zero export loop from 800 W to 1200 W |
 
 ## Automations
@@ -63,10 +63,11 @@ The mode is selected with a dropdown helper:
 | [`stable-output-timed-check.yaml`](automations/stable-output-timed-check.yaml) | Re-applies the fixed limit every minute while in either Stable output mode |
 | [`no-output-on-selection.yaml`](automations/no-output-on-selection.yaml) | Sets the power limit to 0 W when No output is selected |
 | [`no-output-timed-check.yaml`](automations/no-output-timed-check.yaml) | Re-applies the 0 W limit every minute while in No output |
+| [`local-mode-off-no-output.yaml`](automations/local-mode-off-no-output.yaml) | When local mode is switched off, sets the mode to No output and the limit to 0 W |
 | [`low-battery-mode.yaml`](automations/low-battery-mode.yaml) | Switches from Zero export to Stable output (auto) when SoC drops below 17 %, and checks again when local mode is switched on |
-| [`battery-recovered.yaml`](automations/battery-recovered.yaml) | Switches from Stable output (auto) back to Zero export when SoC reaches 19 %. Does nothing in the other modes |
+| [`battery-recovered.yaml`](automations/battery-recovered.yaml) | Switches from Stable output (auto) back to Zero export when SoC reaches 22 %. Does nothing in the other modes |
 | [`connectivity-problem.yaml`](automations/connectivity-problem.yaml) | Notifies you if a sensor goes unavailable, and switches from Zero export to Stable output (auto) |
-| [`connectivity-recovery.yaml`](automations/connectivity-recovery.yaml) | Switches from Stable output (auto) back to Zero export once the SoC sensor and grid meter have been valid for 3 minutes and SoC is at 19 % or more, and notifies you. Does nothing in the other modes |
+| [`connectivity-recovery.yaml`](automations/connectivity-recovery.yaml) | Switches from Stable output (auto) back to Zero export once the SoC sensor and grid meter have been valid for 3 minutes and SoC is at 22 % or more, and notifies you. Does nothing in the other modes |
 
 ## Setup
 
@@ -97,20 +98,20 @@ How they fit together with the automations:
 
 - **The automations act first and line up with the inverter.** The low battery automation triggers below 17 %, which is 2 points above the level where the inverter stops. Home Assistant moves the system to the fixed 40 W output before the inverter's own limit is reached. At 40 W the remaining 2 % of a 2.71 kWh battery (roughly 55 Wh) lasts well over an hour.
 - **It protects the zero export loop.** The loop works from the limit it last wrote. If the inverter stopped on-grid output at 15 % while the loop was still running, grid import would rise and the loop would keep raising the limit towards 800 W without the real output following. Switching to Stable output writes the fixed limit again, which resets that.
-- **Between 15 % and 17 %.** After the inverter has stopped, the mode stays `Stable output (auto)` while the battery charges. The inverter starts again at 17 %, and the battery recovered automation then returns to `Zero export` at 19 %.
+- **Between 15 % and 17 %.** After the inverter has stopped, the mode stays `Stable output (auto)` while the battery charges. The inverter starts again at 17 % and runs at the fixed output (40 W). The battery recovered automation then returns to `Zero export` at 22 %.
 - **The margin is small at high output.** 2 % is only a few minutes at 800 W, and the SoC sensor on my setup updates about every 3 minutes. Under heavy load the inverter can reach 15 % before the automation reacts. The app settings are the real safety net, and the automations are a softer first step.
 - **If you change the app values,** adjust the thresholds in [`low-battery-mode.yaml`](automations/low-battery-mode.yaml) and [`battery-recovered.yaml`](automations/battery-recovered.yaml): keep the low battery threshold above the stop level, and the recovered threshold at or above the level where the inverter starts again.
 
 ## Things to know
 
-- **Fixed values.** The 4 W target, the 0 to 8 W margin, the 30 to 800 W range (1200 W in high power mode), the 40 W stable output and the 17 % low battery and 19 % recovery thresholds are my values, set where I want them for now. Each is explained in the comments at the top of its file.
+- **Fixed values.** The 4 W target, the 0 to 8 W margin, the 30 to 800 W range (1200 W in high power mode), the 40 W stable output and the 17 % low battery and 22 % recovery thresholds are my values, set where I want them for now. Each is explained in the comments at the top of its file.
 - **Setpoint based.** The control loop works from the limit it last wrote, not from the inverter's measured output, because the inverter output sensor on my setup only updates every few minutes. If your sensor updates quickly, using the real output can be more accurate.
 - **Battery thresholds.** Keep a gap between the low and recovered values if the SoC tends to hover around them, otherwise the mode can flip back and forth.
 - **High power mode.** With `input_boolean.ezhi_high_power_mode` on, the zero export loop may raise the limit up to 1200 W instead of 800 W. Check that the number entity's `max` allows it and that your hardware is rated for it. If the inverter cannot deliver the full limit, the loop can overshoot, because it works from the limit it last wrote and not from the measured output. See [`ezhi-high-power-mode.md`](helpers/ezhi-high-power-mode.md).
-- **Local mode switch.** While `input_boolean.ezhi_local_mode` is off, no automation runs: no inverter writes, no mode changes and no notifications. When you switch it on again, the zero export loop resumes on the next meter reading, the stable limit is re-applied within a minute, and the low battery check runs right away. See [`ezhi-local-mode.md`](helpers/ezhi-local-mode.md).
+- **Local mode switch.** Switching `input_boolean.ezhi_local_mode` off sets the mode to `No output` and the limit to 0 W once. After that no automation runs: no inverter writes, no mode changes and no notifications. In cloud mode, writes to the power limit succeed but do not change the real output. After you switch it on again, the mode stays `No output` until you select one. See [`ezhi-local-mode.md`](helpers/ezhi-local-mode.md).
 - **Your choice is respected.** Select `Stable output (permanent)` or `No output` and the low battery, battery recovered, connectivity problem and connectivity recovery automations leave the mode alone (the connectivity problem automation still notifies you).
 - **No delay on connectivity problems.** Even a one-second unavailable moment of the grid meter or the SoC sensor switches to `Stable output (auto)` and sends a notification. This is intentional.
-- **Automatic recovery.** Once both sensors have been valid for 3 minutes and the battery is at 19 % or more, `connectivity-recovery.yaml` switches back to `Zero export` and notifies you. Use `Stable output (permanent)` if you want to decide yourself.
+- **Automatic recovery.** Once both sensors have been valid for 3 minutes and the battery is at 22 % or more, `connectivity-recovery.yaml` switches back to `Zero export` and notifies you. Use `Stable output (permanent)` if you want to decide yourself.
 
 ## Contributing
 
