@@ -12,7 +12,7 @@
 #   notify.mobile_app_YOUR_PHONE        -> notify service of your phone
 #                                          (Developer Tools > Actions, search "notify.")
 #
-# Tunable: the "It will return..." text in the outcome variable (3 minutes and 19 %) should
+# Tunable: the "It will return..." text in the outcome variable (3 minutes and 22 %) should
 # match the values used in connectivity-recovery.yaml.
 #
 # Requires helpers: input_select.ezhi_output_mode, input_boolean.ezhi_local_mode
@@ -51,7 +51,7 @@ actions:
         {% if previous_mode == 'Zero export' %}
         Switched to Stable output (auto). It will return to Zero export
         automatically once both sensors have been stable for 3 minutes and the
-        battery reaches 19 %.
+        battery reaches 22 %.
         {% else %}
         Mode left unchanged: {{ previous_mode }}.
         {% endif %}
