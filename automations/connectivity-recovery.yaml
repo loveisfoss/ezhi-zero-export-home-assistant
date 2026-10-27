@@ -1,7 +1,7 @@
 # EZHI connectivity recovery
 #
 # Switches from "Stable output (auto)" back to "Zero export" once the battery SoC sensor and
-# the grid meter have both had valid values for 3 minutes in a row and the SoC is at 19 %
+# the grid meter have both had valid values for 3 minutes in a row and the SoC is at 22 %
 # or more, then sends a persistent notification plus a phone notification.
 # In every other mode (Stable output (permanent), No output) it does nothing, so your choice
 # is respected. It also does nothing while input_boolean.ezhi_local_mode is off.
@@ -15,7 +15,7 @@
 #   sensor.YOUR_GRID_POWER_SENSOR       -> grid meter power in W
 #   notify.mobile_app_YOUR_PHONE        -> notify service of your phone
 #
-# Tunables: "> 18" = SoC level in % (with whole-number readings it fires at 19 %),
+# Tunables: "> 21" = SoC level in % (with whole-number readings it fires at 22 %),
 # "for" = how long the sensors must be stable.
 # Keep the SoC value the same as in battery-recovered.yaml.
 #
@@ -30,7 +30,7 @@ triggers:
          and is_state('input_select.ezhi_output_mode', 'Stable output (auto)')
          and has_value('sensor.YOUR_EZHI_BATTERY_SOC_SENSOR')
          and has_value('sensor.YOUR_GRID_POWER_SENSOR')
-         and states('sensor.YOUR_EZHI_BATTERY_SOC_SENSOR') | float(0) > 18 }}
+         and states('sensor.YOUR_EZHI_BATTERY_SOC_SENSOR') | float(0) > 21 }}
     for: '00:03:00'
 conditions:
   - condition: state
