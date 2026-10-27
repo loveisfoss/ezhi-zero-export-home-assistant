@@ -18,7 +18,7 @@ Option names must match exactly (case, spaces and brackets), because the automat
 | `Zero export` | The control loop keeps grid import at about 4 W |
 | `Stable output (auto)` | Fixed output (40 W). Set by the automations on low battery or connectivity problems. The recovery automations may switch back to `Zero export` |
 | `Stable output (permanent)` | Fixed output (40 W). Select it yourself: no automation changes the mode until you do |
-| `No output` | The power limit is set to 0 W and re-applied every minute. Select it yourself: no automation changes the mode until you do |
+| `No output` | The power limit is set to 0 W and re-applied every minute. Set automatically when local mode is switched off, or select it yourself: no automation switches out of it |
 
 `No output` needs a power limit entity that accepts 0. Check the `min` attribute of the entity in Developer Tools > States.
 
