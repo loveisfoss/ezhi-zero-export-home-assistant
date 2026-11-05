@@ -1,25 +1,28 @@
 # EZHI battery recovered
 #
 # Switches from "Stable output (auto)" back to "Zero export" when the battery state of
-# charge reaches 22 %. In every other mode (Stable output (permanent), No output) it does
-# nothing, so your choice is respected. It also does nothing while
+# charge reaches the recovery level. In every other mode (Stable output (permanent),
+# No output) it does nothing, so your choice is respected. It also does nothing while
 # input_boolean.ezhi_local_mode is off.
 #
 # Replace before use:
 #   sensor.YOUR_EZHI_BATTERY_SOC_SENSOR -> battery state of charge in %
 #
-# Tunable: "above: 21" = trigger level in %. With whole-number readings it fires at 22 %.
-# The gap to the low battery threshold (17 %, low-battery-mode.yaml) avoids the mode flipping
-# back and forth. Keep the value the same as in connectivity-recovery.yaml.
+# Adjustable value: input_number.ezhi_recovery_soc -> recovery level in % (my value 27).
+# Zero export resumes at this SoC or higher. Keep it above the low battery level so the mode
+# does not flip back and forth.
 #
-# Requires helpers: input_select.ezhi_output_mode, input_boolean.ezhi_local_mode
+# Requires helpers: input_select.ezhi_output_mode, input_boolean.ezhi_local_mode,
+# input_number.ezhi_recovery_soc
 
 alias: EZHI battery recovered
 description: ''
 triggers:
-  - trigger: numeric_state
-    entity_id: sensor.YOUR_EZHI_BATTERY_SOC_SENSOR
-    above: 21
+  - trigger: template
+    value_template: >
+      {{ has_value('sensor.YOUR_EZHI_BATTERY_SOC_SENSOR')
+         and states('sensor.YOUR_EZHI_BATTERY_SOC_SENSOR') | float(0)
+             >= states('input_number.ezhi_recovery_soc') | float(22) }}
 conditions:
   - condition: state
     entity_id: input_boolean.ezhi_local_mode
