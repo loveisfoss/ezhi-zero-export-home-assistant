@@ -1,26 +1,30 @@
 # EZHI low battery mode
 #
 # Switches from "Zero export" to "Stable output (auto)" when the battery state of charge
-# drops below 17 %. Does nothing in any Stable output mode (you are already at the fixed
-# output) and nothing while input_boolean.ezhi_local_mode is off.
+# reaches the low battery level or lower. Does nothing in any other mode (Stable output or
+# No output) and nothing while input_boolean.ezhi_local_mode is off.
 #
 # It also runs when local mode is switched on again, and checks the SoC then. This covers
-# a battery that dropped below 17 % while local mode was off, when no crossing was seen.
+# a battery that dropped to the level while local mode was off, when no crossing was seen.
 #
 # Replace before use:
 #   sensor.YOUR_EZHI_BATTERY_SOC_SENSOR -> battery state of charge in %
 #
-# Tunable: "below: 17" = SoC threshold in % (two places: trigger and condition)
-# Pair it with battery-recovered.yaml and keep a sensible gap between the two thresholds.
+# Adjustable value: input_number.ezhi_low_battery_soc -> low battery level in % (my value 22).
+# The switch happens at this SoC or lower. Keep it above the SoC where the inverter stops,
+# and below the recovery level.
 #
-# Requires helpers: input_select.ezhi_output_mode, input_boolean.ezhi_local_mode
+# Requires helpers: input_select.ezhi_output_mode, input_boolean.ezhi_local_mode,
+# input_number.ezhi_low_battery_soc
 
 alias: EZHI low battery mode
 description: ''
 triggers:
-  - trigger: numeric_state
-    entity_id: sensor.YOUR_EZHI_BATTERY_SOC_SENSOR
-    below: 17
+  - trigger: template
+    value_template: >
+      {{ has_value('sensor.YOUR_EZHI_BATTERY_SOC_SENSOR')
+         and states('sensor.YOUR_EZHI_BATTERY_SOC_SENSOR') | float(100)
+             <= states('input_number.ezhi_low_battery_soc') | float(0) }}
   - trigger: state
     entity_id: input_boolean.ezhi_local_mode
     to: 'on'
@@ -31,9 +35,11 @@ conditions:
   - condition: state
     entity_id: input_select.ezhi_output_mode
     state: Zero export
-  - condition: numeric_state
-    entity_id: sensor.YOUR_EZHI_BATTERY_SOC_SENSOR
-    below: 17
+  - condition: template
+    value_template: >
+      {{ has_value('sensor.YOUR_EZHI_BATTERY_SOC_SENSOR')
+         and states('sensor.YOUR_EZHI_BATTERY_SOC_SENSOR') | float(100)
+             <= states('input_number.ezhi_low_battery_soc') | float(0) }}
 actions:
   - action: input_select.select_option
     metadata: {}
