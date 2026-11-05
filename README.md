@@ -1,6 +1,6 @@
 # EZHI zero export for Home Assistant
 
-![EZHI zero export dashboard](images/dashboard.jpeg)
+![EZHI zero export dashboard](images/Screenshot.jpeg)
 
 Home Assistant automations that keep an **APsystems EZHI** hybrid microinverter, running in **Local mode**, at (almost) zero grid export, using a grid meter such as a **Shelly Pro EM-50**. They also protect the battery by dropping to a fixed output when the state of charge is low, and warn you if a sensor goes offline.
 
