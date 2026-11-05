@@ -19,7 +19,7 @@ Master switch for the whole setup. Every automation in this repo runs only while
 - If you selected another mode while local mode was off, it takes effect now:
   - The zero export loop resumes with the next grid meter reading.
   - In either Stable output mode, the fixed limit is re-applied within a minute by the timed check.
-  - `low-battery-mode.yaml` runs right away and switches to `Stable output (auto)` if the battery is below its threshold.
+  - `low-battery-mode.yaml` runs right away and switches to `Stable output (auto)` if the battery is at or below the low battery level.
   - `connectivity-recovery.yaml` starts its 3 minute check, if the mode is `Stable output (auto)`.
 
 While the switch is off, selecting a mode in the dropdown changes nothing on the inverter.
