@@ -2,9 +2,10 @@
 #
 # If the battery SoC sensor or the grid meter becomes unavailable/unknown (even for a
 # moment), switch from "Zero export" to "Stable output (auto)" and always send a
-# persistent notification plus a phone notification. In "Stable output (permanent)"
-# the mode is left as it is. The notification names the sensor that dropped out.
+# persistent notification plus a phone notification. In any other mode the mode is left
+# as it is. The notification names the sensor that dropped out and the recovery level.
 # connectivity-recovery.yaml switches back to "Zero export" once the sensors are stable.
+# Does nothing while input_boolean.ezhi_local_mode is off.
 #
 # Replace before use:
 #   sensor.YOUR_EZHI_BATTERY_SOC_SENSOR -> battery state of charge in %
@@ -12,10 +13,11 @@
 #   notify.mobile_app_YOUR_PHONE        -> notify service of your phone
 #                                          (Developer Tools > Actions, search "notify.")
 #
-# Tunable: the "It will return..." text in the outcome variable (3 minutes and 22 %) should
-# match the values used in connectivity-recovery.yaml.
+# The "3 minutes" in the outcome text should match connectivity-recovery.yaml.
+# The recovery level in the text comes from input_number.ezhi_recovery_soc.
 #
-# Requires helpers: input_select.ezhi_output_mode, input_boolean.ezhi_local_mode
+# Requires helpers: input_select.ezhi_output_mode, input_boolean.ezhi_local_mode,
+# input_number.ezhi_recovery_soc
 
 alias: EZHI connectivity problem
 description: ''
@@ -51,7 +53,7 @@ actions:
         {% if previous_mode == 'Zero export' %}
         Switched to Stable output (auto). It will return to Zero export
         automatically once both sensors have been stable for 3 minutes and the
-        battery reaches 22 %.
+        battery reaches {{ states('input_number.ezhi_recovery_soc') | float(22) | round(0) | int }} %.
         {% else %}
         Mode left unchanged: {{ previous_mode }}.
         {% endif %}
