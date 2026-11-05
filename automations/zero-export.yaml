@@ -1,4 +1,4 @@
-# EZHI zero export (Target 4 W, Margin 0-8 W)
+# EZHI zero export
 #
 # Keeps grid import slightly above 0 W by adjusting the EZHI on-grid power limit.
 # Runs only while input_boolean.ezhi_local_mode is on and input_select.ezhi_output_mode = "Zero export",
@@ -8,18 +8,18 @@
 #   sensor.YOUR_GRID_POWER_SENSOR   -> grid meter power in W (positive = import, negative = export)
 #   number.YOUR_EZHI_POWER_LIMIT    -> number entity that sets the EZHI on-grid power limit
 #
-# Tunables:
-#   "- 4"          -> target grid import in W
-#   "< 0 or > 8"   -> deadband: no action while grid power is between 0 and 8 W
-#   "30"           -> minimum power limit in W
-#   "1200 / 800"   -> maximum power limit in W with / without input_boolean.ezhi_high_power_mode
-#   cooldown       -> set in the timer helper timer.ezhi_cooldown (the automation starts the
-#                     timer without its own duration, so the helper's duration applies)
+# Adjustable values (Number helpers, see helpers/ezhi-adjustable-values.md):
+#   input_number.ezhi_zero_export_target    -> target grid import in W (default 4)
+#   input_number.ezhi_zero_export_band_min  -> no action while grid power is inside the band
+#   input_number.ezhi_zero_export_band_max     (default 0 to 8 W)
+#   input_number.ezhi_max_power_limit       -> maximum power limit in W, 30 to 1200 (my value 800)
+# Fixed: the 30 W minimum power limit. The cooldown is set in the timer helper timer.ezhi_cooldown
+# (the automation starts the timer without its own duration).
 #
-# Requires helpers: input_select.ezhi_output_mode, timer.ezhi_cooldown, input_boolean.ezhi_local_mode,
-# input_boolean.ezhi_high_power_mode
+# Requires helpers: input_select.ezhi_output_mode, timer.ezhi_cooldown, input_boolean.ezhi_local_mode
+# and the number helpers above
 
-alias: EZHI zero export (Target 4 W, Margin 0-8 W)
+alias: EZHI zero export
 description: ''
 triggers:
   - trigger: state
@@ -53,7 +53,8 @@ conditions:
       {% set grid_power =
         states('sensor.YOUR_GRID_POWER_SENSOR')
         | float(0) %}
-      {{ grid_power < 0 or grid_power > 8 }}
+      {{ grid_power < states('input_number.ezhi_zero_export_band_min') | float(0)
+         or grid_power > states('input_number.ezhi_zero_export_band_max') | float(8) }}
 actions:
   - variables:
       grid_power: |
@@ -62,11 +63,13 @@ actions:
       ezhi_power: |
         {{ states('number.YOUR_EZHI_POWER_LIMIT')
            | float(0) }}
-      max_power: >
-        {{ 1200 if is_state('input_boolean.ezhi_high_power_mode', 'on') else 800 }}
+      target_import: |
+        {{ states('input_number.ezhi_zero_export_target') | float(4) }}
+      max_power: |
+        {{ states('input_number.ezhi_max_power_limit') | float(800) }}
   - variables:
       new_power: >
-        {% set calculated = ezhi_power + grid_power - 4 %} {{ [[calculated, 30]
+        {% set calculated = ezhi_power + grid_power - target_import %} {{ [[calculated, 30]
         | max, max_power] | min | round(0) }}
   - condition: template
     value_template: |
