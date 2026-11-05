@@ -1,0 +1,41 @@
+# EZHI max power limit changed - clamp limit
+#
+# When the maximum power limit helper is changed, lowers the EZHI power limit to the new
+# maximum straight away if it is above that. It waits until the value has stayed unchanged
+# for 10 seconds (mode "restart"), so dragging a slider does not cause a write for every step.
+# Without this automation, the limit would only come down the next time the grid reading
+# leaves the margin of the zero export automation.
+# Does nothing while input_boolean.ezhi_local_mode is off.
+#
+# Replace before use:
+#   number.YOUR_EZHI_POWER_LIMIT -> number entity that sets the EZHI on-grid power limit
+#
+# Adjustable value: input_number.ezhi_max_power_limit -> maximum power limit in W,
+# shared with zero-export.yaml
+# Tunable: the 10 second delay
+#
+# Requires helpers: input_boolean.ezhi_local_mode, input_number.ezhi_max_power_limit
+
+alias: EZHI max power limit changed - clamp limit
+description: ''
+triggers:
+  - trigger: state
+    entity_id: input_number.ezhi_max_power_limit
+conditions:
+  - condition: state
+    entity_id: input_boolean.ezhi_local_mode
+    state: 'on'
+actions:
+  - delay: '00:00:10'
+  - condition: template
+    value_template: >
+      {{ has_value('number.YOUR_EZHI_POWER_LIMIT')
+         and has_value('input_number.ezhi_max_power_limit')
+         and states('number.YOUR_EZHI_POWER_LIMIT') | float(0)
+             > states('input_number.ezhi_max_power_limit') | float(800) }}
+  - action: number.set_value
+    target:
+      entity_id: number.YOUR_EZHI_POWER_LIMIT
+    data:
+      value: "{{ states('input_number.ezhi_max_power_limit') | float(800) | round(0) }}"
+mode: restart
