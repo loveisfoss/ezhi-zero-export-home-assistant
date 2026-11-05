@@ -1,14 +1,16 @@
 # EZHI Stable output - Dropdown selection
 #
 # When the mode is switched to "Stable output (auto)" or "Stable output (permanent)",
-# immediately set the EZHI power limit to a fixed value (40 W here).
+# immediately set the EZHI power limit to the stable output power.
+# Does nothing while input_boolean.ezhi_local_mode is off.
 #
 # Replace before use:
 #   number.YOUR_EZHI_POWER_LIMIT -> number entity that sets the EZHI on-grid power limit
 #
-# Tunable: value '40' = stable output power in W
+# Adjustable value: input_number.ezhi_stable_power -> stable output power in W (default 40)
 #
-# Requires helpers: input_select.ezhi_output_mode, input_boolean.ezhi_local_mode
+# Requires helpers: input_select.ezhi_output_mode, input_boolean.ezhi_local_mode,
+# input_number.ezhi_stable_power
 
 alias: EZHI Stable output - Dropdown selection
 description: ''
@@ -29,5 +31,5 @@ actions:
     target:
       entity_id: number.YOUR_EZHI_POWER_LIMIT
     data:
-      value: '40'
+      value: "{{ states('input_number.ezhi_stable_power') | float(40) | round(0) }}"
 mode: single
