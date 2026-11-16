@@ -112,13 +112,13 @@ My settings in the AP EasyPower app at the moment of writing:
 | Setting | Value | Effect |
 |---|---|---|
 | Min SOC | 25 % | The inverter stops on-grid output when the SoC reaches 25 % |
-| Recovery SOC | 35 % | The inverter starts on-grid output again when the SoC reaches 35 % |
+| Recovery SOC | 32 % | The inverter starts on-grid output again when the SoC reaches 32 % |
 
 My Home Assistant levels are the low battery level (35 %) and the recovery level (45 %). How it all fits together:
 
 - **Home Assistant acts first.** The low battery automation triggers when the SoC reaches 35 %, 10 points above the level where the inverter stops. The system then drops to the fixed 40 W output and the battery drifts down slowly: 10 % of a 2.71 kWh battery is roughly 270 Wh, about 7 hours at 40 W, which is roughly one night.
 - **It protects the zero export loop.** The loop works from the limit it last wrote. If the inverter stopped on-grid output at 25 % while the loop was still running, grid import would rise and the loop would keep raising the limit towards the maximum without the real output following. Switching to Stable output writes the fixed limit again, which resets that.
-- **Between 25 % and 45 %.** After a low battery switch, the mode stays `Stable output (auto)` while the battery charges. If the inverter has stopped at 25 %, it starts again at 35 % and runs at the fixed output (40 W). The battery recovered automation then returns to `Zero export` at 45 %.
+- **Between 25 % and 45 %.** After a low battery switch, the mode stays `Stable output (auto)` while the battery charges. If the inverter has stopped at 25 %, it starts again at 32 % and runs at the fixed output (40 W). The battery recovered automation then returns to `Zero export` at 45 %.
 - **The margin is wide enough for the sensor delay.** 10 % is roughly 270 Wh, about 20 minutes at 800 W, so the SoC sensor's update interval (about 3 minutes on my setup) is not a problem. With a narrow margin, the inverter could reach its stop level before the automation reacts under heavy load. The app settings are the real safety net, and the automations are a softer first step.
 - **If you change the app values,** adjust the low battery and recovery levels in the [number helpers](helpers/ezhi-adjustable-values.md): keep the low battery level above the stop level, and the recovery level above the low battery level.
 
