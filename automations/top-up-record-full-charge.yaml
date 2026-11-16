@@ -1,0 +1,32 @@
+# EZHI record full charge
+#
+# Remembers when the battery last showed 100 %: sets input_datetime.ezhi_last_full_charge to
+# now when the SoC rises above 99 %, and again every 30 minutes while it stays there.
+# The top-up start automation uses this date.
+#
+# Replace before use:
+#   sensor.YOUR_EZHI_BATTERY_SOC_SENSOR -> battery state of charge in %
+#
+# Tunable: "above: 99" = what counts as full. If your sensor never shows 100, use 98.
+#
+# Requires helper: input_datetime.ezhi_last_full_charge
+
+alias: EZHI record full charge
+description: ''
+triggers:
+  - trigger: numeric_state
+    entity_id: sensor.YOUR_EZHI_BATTERY_SOC_SENSOR
+    above: 99
+  - trigger: time_pattern
+    minutes: /30
+conditions:
+  - condition: numeric_state
+    entity_id: sensor.YOUR_EZHI_BATTERY_SOC_SENSOR
+    above: 99
+actions:
+  - action: input_datetime.set_datetime
+    target:
+      entity_id: input_datetime.ezhi_last_full_charge
+    data:
+      timestamp: "{{ now().timestamp() }}"
+mode: single

@@ -1,0 +1,27 @@
+# EZHI top-up cancel
+#
+# Turns the top-up toggle off when you change the mode away from "No output" or switch local
+# mode off while a top-up is active, so the finish automation no longer acts.
+# If you switch back to "No output" afterwards, turn the top-up toggle on again.
+#
+# Requires helpers: input_select.ezhi_output_mode, input_boolean.ezhi_local_mode,
+# input_boolean.ezhi_top_up
+
+alias: EZHI top-up cancel
+description: ''
+triggers:
+  - trigger: state
+    entity_id: input_select.ezhi_output_mode
+    from: No output
+  - trigger: state
+    entity_id: input_boolean.ezhi_local_mode
+    to: 'off'
+conditions:
+  - condition: state
+    entity_id: input_boolean.ezhi_top_up
+    state: 'on'
+actions:
+  - action: input_boolean.turn_off
+    target:
+      entity_id: input_boolean.ezhi_top_up
+mode: single

@@ -1,0 +1,26 @@
+# EZHI top-up toggled on - set no output
+#
+# When the top-up toggle is turned on (by hand or by top-up-start.yaml), sets the mode to
+# "No output", so one switch starts a top-up. It overrides any mode, also
+# "Stable output (permanent)". Does nothing while input_boolean.ezhi_local_mode is off.
+#
+# Requires helpers: input_select.ezhi_output_mode, input_boolean.ezhi_local_mode,
+# input_boolean.ezhi_top_up
+
+alias: EZHI top-up toggled on - set no output
+description: ''
+triggers:
+  - trigger: state
+    entity_id: input_boolean.ezhi_top_up
+    to: 'on'
+conditions:
+  - condition: state
+    entity_id: input_boolean.ezhi_local_mode
+    state: 'on'
+actions:
+  - action: input_select.select_option
+    target:
+      entity_id: input_select.ezhi_output_mode
+    data:
+      option: No output
+mode: single

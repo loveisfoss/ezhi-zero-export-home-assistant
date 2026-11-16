@@ -1,0 +1,50 @@
+# EZHI top-up finish
+#
+# When the battery has stayed above 99 % for one minute during a top-up, switches back to
+# "Zero export", turns the top-up toggle off and sends a persistent and a phone notification.
+# Only acts while the top-up toggle is on and the mode is "No output".
+#
+# Replace before use:
+#   sensor.YOUR_EZHI_BATTERY_SOC_SENSOR -> battery state of charge in %
+#   notify.mobile_app_YOUR_PHONE        -> notify service of your phone
+#
+# Tunables: "above: 99" = what counts as full (use 98 if your sensor never shows 100),
+# "for" = how long the battery must stay full (one minute here)
+#
+# Requires helpers: input_select.ezhi_output_mode, input_boolean.ezhi_local_mode,
+# input_boolean.ezhi_top_up
+
+alias: EZHI top-up finish
+description: ''
+triggers:
+  - trigger: numeric_state
+    entity_id: sensor.YOUR_EZHI_BATTERY_SOC_SENSOR
+    above: 99
+    for: '00:01:00'
+conditions:
+  - condition: state
+    entity_id: input_boolean.ezhi_local_mode
+    state: 'on'
+  - condition: state
+    entity_id: input_boolean.ezhi_top_up
+    state: 'on'
+  - condition: state
+    entity_id: input_select.ezhi_output_mode
+    state: No output
+actions:
+  - action: input_select.select_option
+    target:
+      entity_id: input_select.ezhi_output_mode
+    data:
+      option: Zero export
+  - action: input_boolean.turn_off
+    target:
+      entity_id: input_boolean.ezhi_top_up
+  - action: notify.persistent_notification
+    data:
+      message: EZHI top-up finished. The battery reached 100 %. Mode switched back to Zero export.
+  - action: notify.mobile_app_YOUR_PHONE
+    data:
+      message: The battery reached 100 %. Mode switched back to Zero export.
+      title: EZHI top-up finished
+mode: single

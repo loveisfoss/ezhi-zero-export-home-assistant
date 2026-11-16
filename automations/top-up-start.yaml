@@ -1,0 +1,64 @@
+# EZHI top-up start
+#
+# Every day at 09:00, if the battery has not shown 100 % for the top-up interval or longer,
+# turns the top-up toggle on and sets the mode to "No output". All PV then goes into the
+# battery and the house runs on the grid. The top-up stays active, also overnight, until
+# top-up-finish.yaml sees the battery full. Sends a persistent and a phone notification.
+#
+# Only starts from "Zero export" or "Stable output (auto)": "Stable output (permanent)" and
+# "No output" chosen by you are respected. Does nothing while input_boolean.ezhi_local_mode
+# is off or while a top-up is already active.
+#
+# Replace before use:
+#   notify.mobile_app_YOUR_PHONE -> notify service of your phone
+#
+# Adjustable value: input_number.ezhi_top_up_days -> interval in days (adjustable, for example 3 days)
+# Tunable: "09:00:00" = start time
+#
+# Requires helpers: input_select.ezhi_output_mode, input_boolean.ezhi_local_mode,
+# input_boolean.ezhi_top_up, input_datetime.ezhi_last_full_charge,
+# input_number.ezhi_top_up_days
+
+alias: EZHI top-up start
+description: ''
+triggers:
+  - trigger: time
+    at: '09:00:00'
+conditions:
+  - condition: state
+    entity_id: input_boolean.ezhi_local_mode
+    state: 'on'
+  - condition: state
+    entity_id: input_boolean.ezhi_top_up
+    state: 'off'
+  - condition: state
+    entity_id: input_select.ezhi_output_mode
+    state:
+      - Zero export
+      - Stable output (auto)
+  - condition: template
+    value_template: >
+      {{ (now().timestamp() - state_attr('input_datetime.ezhi_last_full_charge', 'timestamp') | float(0)) / 86400
+         >= states('input_number.ezhi_top_up_days') | float(3) }}
+actions:
+  - action: input_boolean.turn_on
+    target:
+      entity_id: input_boolean.ezhi_top_up
+  - action: input_select.select_option
+    target:
+      entity_id: input_select.ezhi_output_mode
+    data:
+      option: No output
+  - action: notify.persistent_notification
+    data:
+      message: >-
+        EZHI top-up started. No full charge for
+        {{ states('input_number.ezhi_top_up_days') | int }} days or more. Mode set to No output
+        until the battery reaches 100 %.
+  - action: notify.mobile_app_YOUR_PHONE
+    data:
+      message: >-
+        No full charge for {{ states('input_number.ezhi_top_up_days') | int }} days or more.
+        Mode set to No output until the battery reaches 100 %.
+      title: EZHI top-up started
+mode: single
